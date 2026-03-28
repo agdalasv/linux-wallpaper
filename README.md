@@ -6,7 +6,10 @@ Explora y descarga wallpapers para Linux desde GitHub. Aplicación desarrollada 
 
 ## Capturas de pantalla
 
-![Screenshot](https://raw.githubusercontent.com/agdalasv/linux-wallpaper/main/1.png)
+| | | |
+|:---:|:---:|:---:|
+| ![1](1.png) | ![2](2.png) | ![3](3.png) |
+| ![4](4.png) | ![5](5.png) | ![6](6.png) |
 
 ## Características
 

@@ -187,7 +187,15 @@
         </div>
         
         <div class="screenshot">
-            <img src="https://raw.githubusercontent.com/agdalasv/linux-wallpaper/refs/heads/main/1.png" alt="Screenshot" style="max-width: 100%; height: auto;">
+            <h2 style="margin-bottom: 20px; color: #e94560;">Capturas de pantalla</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <img src="https://raw.githubusercontent.com/agdalasv/linux-wallpaper/main/1.png" alt="1" style="width: 100%; border-radius: 10px; border: 2px solid #0f3460;">
+                <img src="https://raw.githubusercontent.com/agdalasv/linux-wallpaper/main/2.png" alt="2" style="width: 100%; border-radius: 10px; border: 2px solid #0f3460;">
+                <img src="https://raw.githubusercontent.com/agdalasv/linux-wallpaper/main/3.png" alt="3" style="width: 100%; border-radius: 10px; border: 2px solid #0f3460;">
+                <img src="https://raw.githubusercontent.com/agdalasv/linux-wallpaper/main/4.png" alt="4" style="width: 100%; border-radius: 10px; border: 2px solid #0f3460;">
+                <img src="https://raw.githubusercontent.com/agdalasv/linux-wallpaper/main/5.png" alt="5" style="width: 100%; border-radius: 10px; border: 2px solid #0f3460;">
+                <img src="https://raw.githubusercontent.com/agdalasv/linux-wallpaper/main/6.png" alt="6" style="width: 100%; border-radius: 10px; border: 2px solid #0f3460;">
+            </div>
         </div>
         
         <div class="features">
@@ -210,25 +218,25 @@
         </div>
         
         <div class="download">
-            <h2 style="margin-bottom: 20px;">Instalación Directa</h2>
-            
-            <h3 style="color: #e94560; margin: 30px 0 15px;">Ubuntu / Debian / Linux Mint</h3>
-            <div class="install-code">
-                <code>sudo apt install python3-pyqt6 python3-requests python3-pillow<br>wget https://github.com/agdalasv/linux-wallpaper/raw/refs/heads/main/linux-wallpaper-app.tar.gz<br>tar -xzf linux-wallpaper-app.tar.gz<br>cd usr<br>sudo cp -r . /<br>linux-wallpaper-app</code>
-            </div>
+            <h2 style="margin-bottom: 20px;">Instalación</h2>
             
             <h3 style="color: #e94560; margin: 30px 0 15px;">Arch Linux</h3>
             <div class="install-code">
-                <code>sudo pacman -S python-pyqt6 python-requests python-pillow<br>wget https://github.com/agdalasv/linux-wallpaper/raw/refs/heads/main/linux-wallpaper-app.tar.gz<br>tar -xzf linux-wallpaper-app.tar.gz<br>cd usr<br>sudo cp -r . /<br>linux-wallpaper-app</code>
+                <code>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>makepkg -sri</code>
+            </div>
+            
+            <h3 style="color: #e94560; margin: 30px 0 15px;">Ubuntu / Debian</h3>
+            <div class="install-code">
+                <code>sudo apt install python3-pyqt6 python3-requests python3-pillow<br>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>dpkg-buildpackage -us -uc<br>sudo dpkg -i ../linux-wallpaper_1.0_all.deb</code>
             </div>
             
             <h3 style="color: #e94560; margin: 30px 0 15px;">Fedora</h3>
             <div class="install-code">
-                <code>sudo dnf install python3-pyqt6 python3-requests python3-pillow<br>wget https://github.com/agdalasv/linux-wallpaper/raw/refs/heads/main/linux-wallpaper-app.tar.gz<br>tar -xzf linux-wallpaper-app.tar.gz<br>cd usr<br>sudo cp -r . /<br>linux-wallpaper-app</code>
+                <code>sudo dnf install python3-pyqt6 python3-requests python3-pillow<br>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>sudo cp -r . /opt/linux_wallpaper_app<br>sudo cp linux-wallpaper-app.sh /usr/bin/</code>
             </div>
             
-            <a href="https://github.com/agdalasv/linux-wallpaper/raw/refs/heads/main/linux-wallpaper-app.tar.gz" class="btn">Descargar Paquete (.tar.gz)</a>
-            <a href="https://github.com/agdalasv/linux-wallpaper" class="btn btn-secondary">Ver en GitHub</a>
+            <a href="https://github.com/agdalasv/linux-wallpaper" class="btn">Ver en GitHub</a>
+            <a href="https://github.com/agdalasv/linux-wallpaper/archive/refs/heads/main.zip" class="btn btn-secondary">Descargar ZIP</a>
         </div>
         
         <div class="donation">
@@ -238,7 +246,7 @@
         </div>
         
         <footer>
-            <p>Desarrollado por <a href="https://github.com/agdalasv">Agdala</a></p>
+            <p>Linux Wallpaper App - Creado por Agdala 2026</p>
             <p>MIT License</p>
         </footer>
     </div>

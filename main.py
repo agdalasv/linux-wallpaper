@@ -18,7 +18,8 @@ import subprocess
 import shutil
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QLabel, QPushButton, QListWidget, 
-                             QScrollArea, QGridLayout, QSizePolicy, QProgressBar)
+                             QScrollArea, QGridLayout, QSizePolicy, QProgressBar,
+                             QDialog, QMessageBox)
 from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QBrush, QImage, QFont
 from PyQt6.QtCore import Qt, QSize, QUrl, QTimer, QPropertyAnimation, QEasingCurve, QPoint, QParallelAnimationGroup, QAbstractAnimation
 from PyQt6.QtCore import pyqtSignal
@@ -71,53 +72,16 @@ def get_google_sheet_id():
 
 
 def sync_likes_to_sheet(image_name, action):
-    global GOOGLE_SHEET_ID, GOOGLE_API_KEY
-    if not GOOGLE_SHEET_ID or not GOOGLE_API_KEY:
-        print("Google Sheet ID o API Key no configurados")
-        return False
+    global likes_cache
     
-    try:
-        range_name = "A:C"
-        url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}?key={GOOGLE_API_KEY}"
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = response.json()
-            values = data.get('values', [])
-            
-            row_to_update = -1
-            for i, row in enumerate(values):
-                if row and row[0] == image_name:
-                    row_to_update = i + 1
-                    break
-            
-            if action == "like":
-                update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
-                if row_to_update > 0:
-                    current_likes = int(values[row_to_update-1][1]) if len(values[row_to_update-1]) > 1 and values[row_to_update-1][1] else 0
-                    new_likes = current_likes + 1
-                    patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.put(patch_url, json={"values": [[image_name, new_likes, values[row_to_update-1][2] if len(values[row_to_update-1]) > 2 else 0]]})
-                else:
-                    post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.post(post_url, json={"values": [[image_name, 1, 0]]})
-            
-            elif action == "dislike":
-                update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
-                if row_to_update > 0:
-                    current_dislikes = int(values[row_to_update-1][2]) if len(values[row_to_update-1]) > 2 and values[row_to_update-1][2] else 0
-                    new_dislikes = current_dislikes + 1
-                    patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.put(patch_url, json={"values": [[image_name, values[row_to_update-1][1] if len(values[row_to_update-1]) > 1 else 0, new_dislikes]]})
-                else:
-                    post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.post(post_url, json={"values": [[image_name, 0, 1]]})
-            
-            return True
-    except Exception as e:
-        print(f"Error sincronizando con Google Sheets: {e}")
-        return False
-    return False
+    likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
+    if action == "like":
+        likes_cache[image_name]['likes'] = likes_cache[image_name].get('likes', 0) + 1
+    elif action == "dislike":
+        likes_cache[image_name]['dislikes'] = likes_cache[image_name].get('dislikes', 0) + 1
+    
+    save_likes_cache()
+    return None
 
 def ensure_cache_dir():
     os.makedirs(CACHE_DIR, exist_ok=True)
@@ -152,16 +116,15 @@ def fetch_repo_data(url):
 
 def get_wallpaper_categories():
     cached = load_cached_data()
-    if cached:
-        print("Loading from cache...")
-        return cached
     
     print("Fetching repository structure from GitHub...")
     categories = {}
     
     folders = fetch_repo_data(GITHUB_REPO_URL)
     if not folders:
-        return {"Error": []}
+        return cached if cached else {"Error": []}
+    
+    new_categories_found = False
     
     for folder in folders:
         if folder.get('type') == 'dir':
@@ -182,8 +145,21 @@ def get_wallpaper_categories():
                         })
             
             categories[category_name] = images
+            
+            if not cached or category_name not in cached:
+                new_categories_found = True
     
-    save_cached_data(categories)
+    if cached:
+        for category_name in cached:
+            if category_name not in categories:
+                categories[category_name] = cached[category_name]
+    
+    if new_categories_found or categories != cached:
+        print("New categories detected, updating cache...")
+        save_cached_data(categories)
+    else:
+        print("Loading from cache...")
+    
     return categories
 
 def get_desktop_environment():
@@ -495,7 +471,11 @@ class WallpaperCard(QWidget):
             self.like_button.setProperty("liked", "true")
             self.like_button.style().unpolish(self.like_button)
             self.like_button.style().polish(self.like_button)
-            sync_likes_to_sheet(image_name, "like")
+            result = sync_likes_to_sheet(image_name, "like")
+            if result:
+                QMessageBox.warning(self, "Error", f"No se pudo sincronizar: {result}")
+            else:
+                QMessageBox.information(self, "Éxito", "¡Like sincronizado!")
             likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
             likes_cache[image_name]['likes'] = likes_cache[image_name].get('likes', 0) + 1
             save_likes_cache()
@@ -508,7 +488,11 @@ class WallpaperCard(QWidget):
             self.dislike_button.setProperty("disliked", "true")
             self.dislike_button.style().unpolish(self.dislike_button)
             self.dislike_button.style().polish(self.dislike_button)
-            sync_likes_to_sheet(image_name, "dislike")
+            result = sync_likes_to_sheet(image_name, "dislike")
+            if result:
+                QMessageBox.warning(self, "Error", f"No se pudo sincronizar: {result}")
+            else:
+                QMessageBox.information(self, "Éxito", "¡Dislike sincronizado!")
             likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
             likes_cache[image_name]['dislikes'] = likes_cache[image_name].get('dislikes', 0) + 1
             save_likes_cache()
@@ -545,6 +529,21 @@ class MainWindow(QMainWindow):
         self.category_list.currentRowChanged.connect(self.display_images_for_category)
         self.sidebar_layout.addWidget(self.category_list)
 
+        self.refresh_button = QPushButton("🔄 Actualizar")
+        self.refresh_button.setObjectName("refreshButton")
+        self.refresh_button.clicked.connect(self.refresh_categories)
+        self.sidebar_layout.addWidget(self.refresh_button)
+
+        self.settings_button = QPushButton("⚙️ Ajustes")
+        self.settings_button.setObjectName("settingsButton")
+        self.settings_button.clicked.connect(self.show_settings)
+        self.sidebar_layout.addWidget(self.settings_button)
+
+        self.status_label = QLabel("")
+        self.status_label.setObjectName("statusLabel")
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sidebar_layout.addWidget(self.status_label)
+
         # --- Main Content Area for Wallpapers ---
         self.content_widget = QWidget()
         self.content_layout = QVBoxLayout(self.content_widget)
@@ -575,6 +574,214 @@ class MainWindow(QMainWindow):
 
         self.load_stylesheet()
         self.load_initial_wallpapers()
+
+    def show_settings(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Ajustes")
+        dialog.setFixedSize(450, 450)
+        
+        layout = QVBoxLayout(dialog)
+        
+        title = QLabel("Linux Wallpaper App")
+        title.setStyleSheet("font-size: 22px; font-weight: bold; color: #e94560;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        
+        created = QLabel("Creado por Agdala 2026")
+        created.setStyleSheet("font-weight: bold; color: #2ecc71; font-size: 14px;")
+        created.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(created)
+        
+        layout.addSpacing(20)
+        
+        info = QLabel("Aplicación para explorar y descargar\nwallpapers para Linux.\n\nDesarrollada con PyQt6.")
+        info.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        info.setStyleSheet("color: #a0a0a0;")
+        layout.addWidget(info)
+        
+        layout.addSpacing(30)
+        
+        donate = QLabel("☕ Invita un café")
+        donate.setStyleSheet("font-weight: bold; color: #f39c12; font-size: 16px;")
+        donate.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(donate)
+        
+        btc_btn = QPushButton("BTC: 3L8f3v6BWwL7KBcb8AMZQ2bpE3ACne2EUf")
+        btc_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e94560;
+                color: white;
+                border: none;
+                padding: 15px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #ff6b6b;
+            }
+        """)
+        btc_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btc_btn.clicked.connect(lambda: self.copy_to_clipboard("3L8f3v6BWwL7KBcb8AMZQ2bpE3ACne2EUf", btc_btn))
+        layout.addWidget(btc_btn)
+        
+        email_btn = QPushButton("📧 agdala.sv@gmail.com")
+        email_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #5dade2;
+            }
+        """)
+        email_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        email_btn.clicked.connect(lambda: self.copy_to_clipboard("agdala.sv@gmail.com", email_btn))
+        layout.addWidget(email_btn)
+        
+        layout.addSpacing(20)
+        
+        stats_btn = QPushButton("📊 Ver Estadísticas")
+        stats_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+        """)
+        stats_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        stats_btn.clicked.connect(lambda: self.show_stats(dialog))
+        layout.addWidget(stats_btn)
+        
+        layout.addStretch()
+        
+        close_btn = QPushButton("Cerrar")
+        close_btn.clicked.connect(dialog.close)
+        close_btn.setFixedWidth(100)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e94560;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #ff6b6b;
+            }
+        """)
+        layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        dialog.setStyleSheet("""
+            QDialog { background-color: #1a1a2e; }
+        """)
+        
+        dialog.exec()
+
+    def copy_to_clipboard(self, text, button):
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+        original_text = button.text()
+        button.setText("¡Copiado!")
+        QTimer.singleShot(1500, lambda: button.setText(original_text))
+
+    def show_stats(self, parent_dialog):
+        dialog = QDialog(parent_dialog)
+        dialog.setWindowTitle("Estadísticas de Votación")
+        dialog.setFixedSize(500, 400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        title = QLabel("📊 Estadísticas de Likes/Dislikes")
+        title.setStyleSheet("font-size: 18px; font-weight: bold; color: #e94560;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        
+        layout.addSpacing(10)
+        
+        if not likes_cache:
+            no_data = QLabel("No hay votos todavía")
+            no_data.setStyleSheet("color: #a0a0a0; font-size: 14px;")
+            no_data.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(no_data)
+        else:
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            
+            scroll_content = QWidget()
+            scroll_layout = QVBoxLayout(scroll_content)
+            
+            total_likes = 0
+            total_dislikes = 0
+            
+            for image_name, stats in sorted(likes_cache.items(), key=lambda x: x[1].get('likes', 0) + x[1].get('dislikes', 0), reverse=True):
+                likes = stats.get('likes', 0)
+                dislikes = stats.get('dislikes', 0)
+                total_likes += likes
+                total_dislikes += dislikes
+                
+                card = QWidget()
+                card.setStyleSheet("background-color: #1f4068; border-radius: 10px; padding: 10px; margin: 5px 0;")
+                card_layout = QHBoxLayout(card)
+                
+                name_label = QLabel(image_name[:30] + "..." if len(image_name) > 30 else image_name)
+                name_label.setStyleSheet("color: white; font-weight: bold;")
+                name_label.setMaximumWidth(200)
+                card_layout.addWidget(name_label)
+                
+                likes_label = QLabel(f"❤️ {likes}")
+                likes_label.setStyleSheet("color: #2ecc71; font-weight: bold;")
+                card_layout.addWidget(likes_label)
+                
+                dislikes_label = QLabel(f"❌ {dislikes}")
+                dislikes_label.setStyleSheet("color: #e74c3c; font-weight: bold;")
+                card_layout.addWidget(dislikes_label)
+                
+                scroll_layout.addWidget(card)
+            
+            scroll.setWidget(scroll_content)
+            layout.addWidget(scroll)
+            
+            totals = QLabel(f"Total: ❤️ {total_likes} | ❌ {total_dislikes}")
+            totals.setStyleSheet("font-weight: bold; color: #3498db; padding: 10px;")
+            totals.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(totals)
+        
+        close_btn = QPushButton("Cerrar")
+        close_btn.clicked.connect(dialog.close)
+        close_btn.setFixedWidth(100)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e94560;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #ff6b6b;
+            }
+        """)
+        layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        dialog.setStyleSheet("""
+            QDialog { background-color: #1a1a2e; }
+            QScrollArea { background-color: transparent; border: none; }
+        """)
+        
+        dialog.exec()
 
     def load_stylesheet(self):
         """Loads the QSS stylesheet."""
@@ -621,6 +828,27 @@ class MainWindow(QMainWindow):
             self.current_category_label.setText("No wallpapers available.")
             self.clear_grid_layout()
 
+    def refresh_categories(self):
+        """Actualiza las categorías desde GitHub."""
+        self.refresh_button.setEnabled(False)
+        self.refresh_button.setText("Actualizando...")
+        QApplication.processEvents()
+        
+        new_data = get_wallpaper_categories()
+        self.wallpaper_data = new_data
+        
+        current_category = self.category_list.currentItem()
+        current_row = self.category_list.currentRow()
+        
+        self.category_list.clear()
+        self.populate_categories()
+        
+        if current_category and current_row >= 0:
+            self.category_list.setCurrentRow(current_row)
+        
+        self.refresh_button.setEnabled(True)
+        self.refresh_button.setText("🔄 Actualizar")
+        
     def display_wallpapers_in_grid(self, images):
         """Clears the current grid and displays new wallpaper cards."""
         self.clear_grid_layout()
