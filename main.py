@@ -19,7 +19,7 @@ import shutil
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QLabel, QPushButton, QListWidget, 
                              QScrollArea, QGridLayout, QSizePolicy, QProgressBar,
-                             QDialog)
+                             QDialog, QMessageBox)
 from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QBrush, QImage, QFont
 from PyQt6.QtCore import Qt, QSize, QUrl, QTimer, QPropertyAnimation, QEasingCurve, QPoint, QParallelAnimationGroup, QAbstractAnimation
 from PyQt6.QtCore import pyqtSignal
@@ -73,52 +73,53 @@ def get_google_sheet_id():
 
 def sync_likes_to_sheet(image_name, action):
     global GOOGLE_SHEET_ID, GOOGLE_API_KEY
+    
     if not GOOGLE_SHEET_ID or not GOOGLE_API_KEY:
-        print("Google Sheet ID o API Key no configurados")
-        return False
+        return "Sheet no configurado"
     
     try:
         range_name = "A:C"
         url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}?key={GOOGLE_API_KEY}"
         response = requests.get(url)
         
-        if response.status_code == 200:
-            data = response.json()
-            values = data.get('values', [])
-            
-            row_to_update = -1
-            for i, row in enumerate(values):
-                if row and row[0] == image_name:
-                    row_to_update = i + 1
-                    break
-            
-            if action == "like":
-                update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
-                if row_to_update > 0:
-                    current_likes = int(values[row_to_update-1][1]) if len(values[row_to_update-1]) > 1 and values[row_to_update-1][1] else 0
-                    new_likes = current_likes + 1
-                    patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.put(patch_url, json={"values": [[image_name, new_likes, values[row_to_update-1][2] if len(values[row_to_update-1]) > 2 else 0]]})
-                else:
-                    post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.post(post_url, json={"values": [[image_name, 1, 0]]})
-            
-            elif action == "dislike":
-                update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
-                if row_to_update > 0:
-                    current_dislikes = int(values[row_to_update-1][2]) if len(values[row_to_update-1]) > 2 and values[row_to_update-1][2] else 0
-                    new_dislikes = current_dislikes + 1
-                    patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.put(patch_url, json={"values": [[image_name, values[row_to_update-1][1] if len(values[row_to_update-1]) > 1 else 0, new_dislikes]]})
-                else:
-                    post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                    requests.post(post_url, json={"values": [[image_name, 0, 1]]})
-            
-            return True
+        if response.status_code != 200:
+            return f"Error: {response.status_code}"
+        
+        data = response.json()
+        values = data.get('values', [])
+        
+        row_to_update = -1
+        for i, row in enumerate(values):
+            if row and row[0] == image_name:
+                row_to_update = i + 1
+                break
+        
+        if action == "like":
+            update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
+            if row_to_update > 0:
+                current_likes = int(values[row_to_update-1][1]) if len(values[row_to_update-1]) > 1 and values[row_to_update-1][1] else 0
+                new_likes = current_likes + 1
+                patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
+                requests.put(patch_url, json={"values": [[image_name, new_likes, values[row_to_update-1][2] if len(values[row_to_update-1]) > 2 else 0]]})
+            else:
+                post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
+                requests.post(post_url, json={"values": [[image_name, 1, 0]]})
+        
+        elif action == "dislike":
+            update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
+            if row_to_update > 0:
+                current_dislikes = int(values[row_to_update-1][2]) if len(values[row_to_update-1]) > 2 and values[row_to_update-1][2] else 0
+                new_dislikes = current_dislikes + 1
+                patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
+                requests.put(patch_url, json={"values": [[image_name, values[row_to_update-1][1] if len(values[row_to_update-1]) > 1 else 0, new_dislikes]]})
+            else:
+                post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
+                requests.post(post_url, json={"values": [[image_name, 0, 1]]})
+        
+        return None
     except Exception as e:
-        print(f"Error sincronizando con Google Sheets: {e}")
-        return False
-    return False
+        return str(e)
+    return "Error desconocido"
 
 def ensure_cache_dir():
     os.makedirs(CACHE_DIR, exist_ok=True)
@@ -508,7 +509,9 @@ class WallpaperCard(QWidget):
             self.like_button.setProperty("liked", "true")
             self.like_button.style().unpolish(self.like_button)
             self.like_button.style().polish(self.like_button)
-            sync_likes_to_sheet(image_name, "like")
+            result = sync_likes_to_sheet(image_name, "like")
+            if result:
+                QMessageBox.information(self, "Error", f"No se pudo sincronizar: {result}")
             likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
             likes_cache[image_name]['likes'] = likes_cache[image_name].get('likes', 0) + 1
             save_likes_cache()
@@ -521,7 +524,9 @@ class WallpaperCard(QWidget):
             self.dislike_button.setProperty("disliked", "true")
             self.dislike_button.style().unpolish(self.dislike_button)
             self.dislike_button.style().polish(self.dislike_button)
-            sync_likes_to_sheet(image_name, "dislike")
+            result = sync_likes_to_sheet(image_name, "dislike")
+            if result:
+                QMessageBox.information(self, "Error", f"No se pudo sincronizar: {result}")
             likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
             likes_cache[image_name]['dislikes'] = likes_cache[image_name].get('dislikes', 0) + 1
             save_likes_cache()
@@ -567,6 +572,11 @@ class MainWindow(QMainWindow):
         self.settings_button.setObjectName("settingsButton")
         self.settings_button.clicked.connect(self.show_settings)
         self.sidebar_layout.addWidget(self.settings_button)
+
+        self.status_label = QLabel("")
+        self.status_label.setObjectName("statusLabel")
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sidebar_layout.addWidget(self.status_label)
 
         # --- Main Content Area for Wallpapers ---
         self.content_widget = QWidget()
