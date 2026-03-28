@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /usr/share/linux-wallpaper-app
+cd "$(dirname "$0")/linux-wallpaper"
 python3 main.py

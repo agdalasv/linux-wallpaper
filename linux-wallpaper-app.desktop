@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Linux Wallpaper App
 Comment=Explora y descarga wallpapers para Linux
-Exec=linux-wallpaper-app
-Icon=linux-wallpaper-app
+Exec=/home/agdala/linux_wallpaper_app/linux-wallpaper-app.sh
+Icon=/home/agdala/linux_wallpaper_app/linux-wallpaper/logo.png
 Terminal=false
 Type=Application
 Categories=Utility;Graphics;
