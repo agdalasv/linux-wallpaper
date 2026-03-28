@@ -210,25 +210,15 @@
         </div>
         
         <div class="download">
-            <h2 style="margin-bottom: 20px;">Instalación</h2>
+            <h2 style="margin-bottom: 20px;">Instalación Directa</h2>
             
-            <h3 style="color: #e94560; margin: 30px 0 15px;">Arch Linux</h3>
+            <h3 style="color: #e94560; margin: 30px 0 15px;">Arch Linux / Fedora / Manual</h3>
             <div class="install-code">
-                <code>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>makepkg -sri</code>
+                <code>sudo pacman -S python-pyqt6 python-requests python-pillow<br># o Fedora: sudo dnf install python3-pyqt6 python3-requests python3-pillow<br># o Ubuntu/Debian: sudo apt install python3-pyqt6 python3-requests python3-pillow<br><br>wget https://github.com/agdalasv/linux-wallpaper/raw/refs/heads/main/linux-wallpaper-app.tar.gz<br>tar -xzf linux-wallpaper-app.tar.gz<br>cd usr<br>sudo cp -r . /<br>linux-wallpaper-app</code>
             </div>
             
-            <h3 style="color: #e94560; margin: 30px 0 15px;">Ubuntu / Debian</h3>
-            <div class="install-code">
-                <code>sudo apt install python3-pyqt6 python3-requests python3-pillow<br>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>dpkg-buildpackage -us -uc<br>sudo dpkg -i ../linux-wallpaper_1.0_all.deb</code>
-            </div>
-            
-            <h3 style="color: #e94560; margin: 30px 0 15px;">Fedora</h3>
-            <div class="install-code">
-                <code>sudo dnf install python3-pyqt6 python3-requests python3-pillow<br>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>sudo cp -r . /opt/linux_wallpaper_app<br>sudo cp linux-wallpaper-app.sh /usr/bin/</code>
-            </div>
-            
-            <a href="https://github.com/agdalasv/linux-wallpaper" class="btn">Ver en GitHub</a>
-            <a href="https://github.com/agdalasv/linux-wallpaper/archive/refs/heads/main.zip" class="btn btn-secondary">Descargar ZIP</a>
+            <a href="https://github.com/agdalasv/linux-wallpaper/raw/refs/heads/main/linux-wallpaper-app.tar.gz" class="btn">Descargar Paquete (.tar.gz)</a>
+            <a href="https://github.com/agdalasv/linux-wallpaper" class="btn btn-secondary">Ver en GitHub</a>
         </div>
         
         <div class="donation">
