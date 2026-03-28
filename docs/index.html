@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Wallpaper App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eaeaea;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo img {
+            width: 150px;
+            height: 150px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(233, 69, 96, 0.3);
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #a0a0a0;
+            margin-bottom: 40px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .feature {
+            background: rgba(31, 64, 104, 0.5);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #0f3460;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+            border-color: #e94560;
+        }
+        
+        .feature h3 {
+            color: #e94560;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .feature p {
+            color: #a0a0a0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        
+        .screenshot {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .screenshot img {
+            max-width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            border: 2px solid #0f3460;
+        }
+        
+        .download {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #e94560;
+        }
+        
+        .install-code {
+            background: rgba(15, 52, 96, 0.8);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: left;
+            overflow-x: auto;
+        }
+        
+        .install-code code {
+            color: #2ecc71;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .donation {
+            text-align: center;
+            padding: 30px;
+            background: rgba(31, 64, 104, 0.3);
+            border-radius: 16px;
+            margin-top: 40px;
+        }
+        
+        .donation h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+        }
+        
+        .btc-address {
+            background: #16213e;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: inline-block;
+            font-family: monospace;
+            color: #f39c12;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        footer a {
+            color: #e94560;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="logo.png" alt="Linux Wallpaper App">
+        </div>
+        
+        <div style="text-align: center;">
+            <h1>Linux Wallpaper App</h1>
+            <p class="subtitle">Explora y descarga wallpapers para Linux</p>
+        </div>
+        
+        <div class="screenshot">
+            <img src="1.png" alt="Screenshot">
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>Explora Categorías</h3>
+                <p>Navega por múltiples categorías de wallpapers directamente desde GitHub</p>
+            </div>
+            <div class="feature">
+                <h3>Multi-Entorno</h3>
+                <p>Compatible con GNOME, KDE, XFCE, MATE, Cinnamon, Deepin y Sway</p>
+            </div>
+            <div class="feature">
+                <h3>Like & Dislike</h3>
+                <p>Sistema de votación sincronizado con Google Sheets</p>
+            </div>
+            <div class="feature">
+                <h3>Tema Oscuro</h3>
+                <p>Interfaz moderna con animaciones y diseño oscuro elegante</p>
+            </div>
+        </div>
+        
+        <div class="download">
+            <h2 style="margin-bottom: 20px;">Instalación</h2>
+            
+            <h3 style="color: #e94560; margin: 30px 0 15px;">Arch Linux</h3>
+            <div class="install-code">
+                <code>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>makepkg -sri</code>
+            </div>
+            
+            <h3 style="color: #e94560; margin: 30px 0 15px;">Ubuntu / Debian</h3>
+            <div class="install-code">
+                <code>sudo apt install python3-pyqt6 python3-requests python3-pillow<br>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>dpkg-buildpackage -us -uc<br>sudo dpkg -i ../linux-wallpaper_1.0_all.deb</code>
+            </div>
+            
+            <h3 style="color: #e94560; margin: 30px 0 15px;">Fedora</h3>
+            <div class="install-code">
+                <code>sudo dnf install python3-pyqt6 python3-requests python3-pillow<br>git clone https://github.com/agdalasv/linux-wallpaper.git<br>cd linux-wallpaper<br>sudo cp -r . /opt/linux_wallpaper_app<br>sudo cp linux-wallpaper-app.sh /usr/bin/</code>
+            </div>
+            
+            <a href="https://github.com/agdalasv/linux-wallpaper" class="btn">Ver en GitHub</a>
+            <a href="https://github.com/agdalasv/linux-wallpaper/archive/refs/heads/main.zip" class="btn btn-secondary">Descargar ZIP</a>
+        </div>
+        
+        <div class="donation">
+            <h3>Invítame un café</h3>
+            <p>Si te gusta el proyecto, tu apoyo es bienvenido</p>
+            <div class="btc-address">3L8f3v6BWwL7KBcb8AMZQ2bpE3ACne2EUf</div>
+        </div>
+        
+        <footer>
+            <p>Desarrollado por <a href="https://github.com/agdalasv">Agdala</a></p>
+            <p>MIT License</p>
+        </footer>
+    </div>
+</body>
+</html>
