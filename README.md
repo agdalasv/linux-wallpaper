@@ -31,18 +31,25 @@ Explora y descarga wallpapers para Linux desde GitHub. Aplicación desarrollada 
 
 ### Arch Linux
 
-#### Opción 1: Desde AUR (recomendado)
+#### Opción 1: Descargar e instalar (sin git)
 ```bash
 # Instalar dependencias
 sudo pacman -S python-pyqt6 python-requests python-pillow
 
-# Clonar y compilar
-git clone https://github.com/agdalasv/linux_wallpaper_app.git
-cd linux_wallpaper_app
-makepkg -sri
+# Descargar
+wget https://github.com/agdalasv/linux-wallpaper/releases/latest/download/linux-wallpaper-app.tar.gz
+tar -xzf linux-wallpaper-app.tar.gz
+cd linux-wallpaper-app
+
+# Instalar
+sudo cp -r . /opt/linux-wallpaper-app
+sudo cp linux-wallpaper-app.sh /usr/bin/linux-wallpaper-app
+sudo cp linux-wallpaper-app.desktop /usr/share/applications/
+sudo cp linux-wallpaper-app.png /usr/share/pixmaps/
+update-desktop-database /usr/share/applications/
 ```
 
-#### Opción 2: Instalación manual
+#### Opción 2: Compilar desde código fuente
 ```bash
 # Instalar dependencias
 sudo pacman -S python-pyqt6 python-requests python-pillow
@@ -67,21 +74,20 @@ cp linux-wallpaper-app.desktop ~/.config/autostart/
 
 ### Ubuntu / Debian
 
-#### Opción 1: Compilar paquete .deb
+#### Opción 1: Descargar e instalar (sin git)
 ```bash
 # Instalar dependencias
-sudo apt install python3-pyqt6 python3-requests python3-pillow build-essential
+sudo apt install python3-pyqt6 python3-requests python3-pillow
 
-# Compilar
-cd linux_wallpaper_app
-dpkg-buildpackage -us -uc
+# Descargar
+wget https://github.com/agdalasv/linux-wallpaper/releases/latest/download/linux-wallpaper-app.deb
 
 # Instalar
-sudo dpkg -i ../linux-wallpaper-app_1.0_all.deb
+sudo dpkg -i linux-wallpaper-app.deb
 sudo apt install -f  # Instalar dependencias faltantes
 ```
 
-#### Opción 2: Instalación manual
+#### Opción 2: Compilar paquete .deb
 ```bash
 # Instalar dependencias
 sudo apt install python3-pyqt6 python3-requests python3-pillow
@@ -100,18 +106,21 @@ update-desktop-database /usr/share/applications/
 
 ### Fedora
 
-#### Instalación
+#### Opción 1: Descargar e instalar (sin git)
 ```bash
 # Instalar dependencias
 sudo dnf install python3-pyqt6 python3-requests python3-pillow
 
-# Copiar archivos
-sudo cp -r linux_wallpaper_app /opt/
+# Descargar
+wget https://github.com/agdalasv/linux-wallpaper/releases/latest/download/linux-wallpaper-app.tar.gz
+tar -xzf linux-wallpaper-app.tar.gz
+cd linux-wallpaper-app
+
+# Instalar
+sudo cp -r . /opt/linux-wallpaper-app
 sudo cp linux-wallpaper-app.sh /usr/bin/linux-wallpaper-app
 sudo cp linux-wallpaper-app.desktop /usr/share/applications/
 sudo cp linux-wallpaper-app.png /usr/share/pixmaps/
-
-# Actualizar
 update-desktop-database /usr/share/applications/
 ```
 
