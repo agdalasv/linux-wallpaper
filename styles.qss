@@ -204,3 +204,33 @@ QLabel {
     color: #a0a0a0;
     font-size: 9pt;
 }
+
+#refreshButton {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+#refreshButton:hover {
+    background-color: #2ecc71;
+}
+
+#refreshButton:disabled {
+    background-color: #7f8c8d;
+}
+
+#settingsButton {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+#settingsButton:hover {
+    background-color: #af7ac5;
+}

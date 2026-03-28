@@ -18,7 +18,8 @@ import subprocess
 import shutil
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QLabel, QPushButton, QListWidget, 
-                             QScrollArea, QGridLayout, QSizePolicy, QProgressBar)
+                             QScrollArea, QGridLayout, QSizePolicy, QProgressBar,
+                             QDialog)
 from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QBrush, QImage, QFont
 from PyQt6.QtCore import Qt, QSize, QUrl, QTimer, QPropertyAnimation, QEasingCurve, QPoint, QParallelAnimationGroup, QAbstractAnimation
 from PyQt6.QtCore import pyqtSignal
@@ -152,16 +153,15 @@ def fetch_repo_data(url):
 
 def get_wallpaper_categories():
     cached = load_cached_data()
-    if cached:
-        print("Loading from cache...")
-        return cached
     
     print("Fetching repository structure from GitHub...")
     categories = {}
     
     folders = fetch_repo_data(GITHUB_REPO_URL)
     if not folders:
-        return {"Error": []}
+        return cached if cached else {"Error": []}
+    
+    new_categories_found = False
     
     for folder in folders:
         if folder.get('type') == 'dir':
@@ -182,8 +182,21 @@ def get_wallpaper_categories():
                         })
             
             categories[category_name] = images
+            
+            if not cached or category_name not in cached:
+                new_categories_found = True
     
-    save_cached_data(categories)
+    if cached:
+        for category_name in cached:
+            if category_name not in categories:
+                categories[category_name] = cached[category_name]
+    
+    if new_categories_found or categories != cached:
+        print("New categories detected, updating cache...")
+        save_cached_data(categories)
+    else:
+        print("Loading from cache...")
+    
     return categories
 
 def get_desktop_environment():
@@ -545,6 +558,16 @@ class MainWindow(QMainWindow):
         self.category_list.currentRowChanged.connect(self.display_images_for_category)
         self.sidebar_layout.addWidget(self.category_list)
 
+        self.refresh_button = QPushButton("🔄 Actualizar")
+        self.refresh_button.setObjectName("refreshButton")
+        self.refresh_button.clicked.connect(self.refresh_categories)
+        self.sidebar_layout.addWidget(self.refresh_button)
+
+        self.settings_button = QPushButton("⚙️ Ajustes")
+        self.settings_button.setObjectName("settingsButton")
+        self.settings_button.clicked.connect(self.show_settings)
+        self.sidebar_layout.addWidget(self.settings_button)
+
         # --- Main Content Area for Wallpapers ---
         self.content_widget = QWidget()
         self.content_layout = QVBoxLayout(self.content_widget)
@@ -575,6 +598,107 @@ class MainWindow(QMainWindow):
 
         self.load_stylesheet()
         self.load_initial_wallpapers()
+
+    def show_settings(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Ajustes")
+        dialog.setFixedSize(450, 450)
+        
+        layout = QVBoxLayout(dialog)
+        
+        title = QLabel("Linux Wallpaper App")
+        title.setStyleSheet("font-size: 22px; font-weight: bold; color: #e94560;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        
+        created = QLabel("Creado por Agdala 2026")
+        created.setStyleSheet("font-weight: bold; color: #2ecc71; font-size: 14px;")
+        created.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(created)
+        
+        layout.addSpacing(20)
+        
+        info = QLabel("Aplicación para explorar y descargar\nwallpapers para Linux.\n\nDesarrollada con PyQt6.")
+        info.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        info.setStyleSheet("color: #a0a0a0;")
+        layout.addWidget(info)
+        
+        layout.addSpacing(30)
+        
+        donate = QLabel("☕ Invita un café")
+        donate.setStyleSheet("font-weight: bold; color: #f39c12; font-size: 16px;")
+        donate.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(donate)
+        
+        btc_btn = QPushButton("BTC: 3L8f3v6BWwL7KBcb8AMZQ2bpE3ACne2EUf")
+        btc_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e94560;
+                color: white;
+                border: none;
+                padding: 15px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #ff6b6b;
+            }
+        """)
+        btc_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btc_btn.clicked.connect(lambda: self.copy_to_clipboard("3L8f3v6BWwL7KBcb8AMZQ2bpE3ACne2EUf", btc_btn))
+        layout.addWidget(btc_btn)
+        
+        email_btn = QPushButton("📧 agdala.sv@gmail.com")
+        email_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #5dade2;
+            }
+        """)
+        email_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        email_btn.clicked.connect(lambda: self.copy_to_clipboard("agdala.sv@gmail.com", email_btn))
+        layout.addWidget(email_btn)
+        
+        layout.addStretch()
+        
+        close_btn = QPushButton("Cerrar")
+        close_btn.clicked.connect(dialog.close)
+        close_btn.setFixedWidth(100)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e94560;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #ff6b6b;
+            }
+        """)
+        layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        dialog.setStyleSheet("""
+            QDialog { background-color: #1a1a2e; }
+        """)
+        
+        dialog.exec()
+
+    def copy_to_clipboard(self, text, button):
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+        original_text = button.text()
+        button.setText("¡Copiado!")
+        QTimer.singleShot(1500, lambda: button.setText(original_text))
 
     def load_stylesheet(self):
         """Loads the QSS stylesheet."""
@@ -621,6 +745,27 @@ class MainWindow(QMainWindow):
             self.current_category_label.setText("No wallpapers available.")
             self.clear_grid_layout()
 
+    def refresh_categories(self):
+        """Actualiza las categorías desde GitHub."""
+        self.refresh_button.setEnabled(False)
+        self.refresh_button.setText("Actualizando...")
+        QApplication.processEvents()
+        
+        new_data = get_wallpaper_categories()
+        self.wallpaper_data = new_data
+        
+        current_category = self.category_list.currentItem()
+        current_row = self.category_list.currentRow()
+        
+        self.category_list.clear()
+        self.populate_categories()
+        
+        if current_category and current_row >= 0:
+            self.category_list.setCurrentRow(current_row)
+        
+        self.refresh_button.setEnabled(True)
+        self.refresh_button.setText("🔄 Actualizar")
+        
     def display_wallpapers_in_grid(self, images):
         """Clears the current grid and displays new wallpaper cards."""
         self.clear_grid_layout()
