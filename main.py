@@ -74,19 +74,26 @@ def get_google_sheet_id():
 def sync_likes_to_sheet(image_name, action):
     global GOOGLE_SHEET_ID, GOOGLE_API_KEY
     
+    print(f"[SYNC] Intentando {action} para: {image_name}")
+    
     if not GOOGLE_SHEET_ID or not GOOGLE_API_KEY:
+        print("[SYNC] ERROR: Sheet no configurado")
         return "Sheet no configurado"
     
     try:
         range_name = "A:C"
         url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}?key={GOOGLE_API_KEY}"
+        print(f"[SYNC] URL: {url}")
         response = requests.get(url)
+        print(f"[SYNC] GET response: {response.status_code}")
         
         if response.status_code != 200:
+            print(f"[SYNC] ERROR: {response.status_code} - {response.text}")
             return f"Error: {response.status_code}"
         
         data = response.json()
         values = data.get('values', [])
+        print(f"[SYNC] Valores actuales: {values}")
         
         row_to_update = -1
         for i, row in enumerate(values):
@@ -95,31 +102,40 @@ def sync_likes_to_sheet(image_name, action):
                 break
         
         if action == "like":
-            update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
             if row_to_update > 0:
                 current_likes = int(values[row_to_update-1][1]) if len(values[row_to_update-1]) > 1 and values[row_to_update-1][1] else 0
                 new_likes = current_likes + 1
+                update_range = f"A{row_to_update}:C{row_to_update}"
                 patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                requests.put(patch_url, json={"values": [[image_name, new_likes, values[row_to_update-1][2] if len(values[row_to_update-1]) > 2 else 0]]})
+                print(f"[SYNC] PUT URL: {patch_url}")
+                print(f"[SYNC] Actualizando like: {image_name} -> {new_likes}")
+                resp = requests.put(patch_url, json={"values": [[image_name, new_likes, values[row_to_update-1][2] if len(values[row_to_update-1]) > 2 else 0]]})
+                print(f"[SYNC] PUT response: {resp.status_code} - {resp.text}")
             else:
                 post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                requests.post(post_url, json={"values": [[image_name, 1, 0]]})
+                print(f"[SYNC] POST URL: {post_url}")
+                print(f"[SYNC] Creando nuevo: {image_name}")
+                resp = requests.post(post_url, json={"values": [[image_name, 1, 0]]})
+                print(f"[SYNC] POST response: {resp.status_code} - {resp.text}")
         
         elif action == "dislike":
-            update_range = f"A{max(row_to_update, 2)}:C{max(row_to_update, 2)}"
             if row_to_update > 0:
                 current_dislikes = int(values[row_to_update-1][2]) if len(values[row_to_update-1]) > 2 and values[row_to_update-1][2] else 0
                 new_dislikes = current_dislikes + 1
+                update_range = f"A{row_to_update}:C{row_to_update}"
                 patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                requests.put(patch_url, json={"values": [[image_name, values[row_to_update-1][1] if len(values[row_to_update-1]) > 1 else 0, new_dislikes]]})
+                resp = requests.put(patch_url, json={"values": [[image_name, values[row_to_update-1][1] if len(values[row_to_update-1]) > 1 else 0, new_dislikes]]})
+                print(f"[SYNC] PUT response: {resp.status_code}")
             else:
                 post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                requests.post(post_url, json={"values": [[image_name, 0, 1]]})
+                resp = requests.post(post_url, json={"values": [[image_name, 0, 1]]})
+                print(f"[SYNC] POST response: {resp.status_code}")
         
+        print("[SYNC] Completado exitosamente")
         return None
     except Exception as e:
+        print(f"[SYNC] EXCEPTION: {str(e)}")
         return str(e)
-    return "Error desconocido"
 
 def ensure_cache_dir():
     os.makedirs(CACHE_DIR, exist_ok=True)
