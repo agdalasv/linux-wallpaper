@@ -527,7 +527,9 @@ class WallpaperCard(QWidget):
             self.like_button.style().polish(self.like_button)
             result = sync_likes_to_sheet(image_name, "like")
             if result:
-                QMessageBox.information(self, "Error", f"No se pudo sincronizar: {result}")
+                QMessageBox.warning(self, "Error", f"No se pudo sincronizar: {result}")
+            else:
+                QMessageBox.information(self, "Éxito", "¡Like sincronizado!")
             likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
             likes_cache[image_name]['likes'] = likes_cache[image_name].get('likes', 0) + 1
             save_likes_cache()
@@ -542,7 +544,9 @@ class WallpaperCard(QWidget):
             self.dislike_button.style().polish(self.dislike_button)
             result = sync_likes_to_sheet(image_name, "dislike")
             if result:
-                QMessageBox.information(self, "Error", f"No se pudo sincronizar: {result}")
+                QMessageBox.warning(self, "Error", f"No se pudo sincronizar: {result}")
+            else:
+                QMessageBox.information(self, "Éxito", "¡Dislike sincronizado!")
             likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
             likes_cache[image_name]['dislikes'] = likes_cache[image_name].get('dislikes', 0) + 1
             save_likes_cache()
