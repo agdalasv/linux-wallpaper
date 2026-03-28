@@ -72,70 +72,16 @@ def get_google_sheet_id():
 
 
 def sync_likes_to_sheet(image_name, action):
-    global GOOGLE_SHEET_ID, GOOGLE_API_KEY
+    global likes_cache
     
-    print(f"[SYNC] Intentando {action} para: {image_name}")
+    likes_cache[image_name] = likes_cache.get(image_name, {'likes': 0, 'dislikes': 0})
+    if action == "like":
+        likes_cache[image_name]['likes'] = likes_cache[image_name].get('likes', 0) + 1
+    elif action == "dislike":
+        likes_cache[image_name]['dislikes'] = likes_cache[image_name].get('dislikes', 0) + 1
     
-    if not GOOGLE_SHEET_ID or not GOOGLE_API_KEY:
-        print("[SYNC] ERROR: Sheet no configurado")
-        return "Sheet no configurado"
-    
-    try:
-        range_name = "A:C"
-        url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}?key={GOOGLE_API_KEY}"
-        print(f"[SYNC] URL: {url}")
-        response = requests.get(url)
-        print(f"[SYNC] GET response: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"[SYNC] ERROR: {response.status_code} - {response.text}")
-            return f"Error: {response.status_code}"
-        
-        data = response.json()
-        values = data.get('values', [])
-        print(f"[SYNC] Valores actuales: {values}")
-        
-        row_to_update = -1
-        for i, row in enumerate(values):
-            if row and row[0] == image_name:
-                row_to_update = i + 1
-                break
-        
-        if action == "like":
-            if row_to_update > 0:
-                current_likes = int(values[row_to_update-1][1]) if len(values[row_to_update-1]) > 1 and values[row_to_update-1][1] else 0
-                new_likes = current_likes + 1
-                update_range = f"A{row_to_update}:C{row_to_update}"
-                patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                print(f"[SYNC] PUT URL: {patch_url}")
-                print(f"[SYNC] Actualizando like: {image_name} -> {new_likes}")
-                resp = requests.put(patch_url, json={"values": [[image_name, new_likes, values[row_to_update-1][2] if len(values[row_to_update-1]) > 2 else 0]]})
-                print(f"[SYNC] PUT response: {resp.status_code} - {resp.text}")
-            else:
-                post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                print(f"[SYNC] POST URL: {post_url}")
-                print(f"[SYNC] Creando nuevo: {image_name}")
-                resp = requests.post(post_url, json={"values": [[image_name, 1, 0]]})
-                print(f"[SYNC] POST response: {resp.status_code} - {resp.text}")
-        
-        elif action == "dislike":
-            if row_to_update > 0:
-                current_dislikes = int(values[row_to_update-1][2]) if len(values[row_to_update-1]) > 2 and values[row_to_update-1][2] else 0
-                new_dislikes = current_dislikes + 1
-                update_range = f"A{row_to_update}:C{row_to_update}"
-                patch_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{update_range}?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                resp = requests.put(patch_url, json={"values": [[image_name, values[row_to_update-1][1] if len(values[row_to_update-1]) > 1 else 0, new_dislikes]]})
-                print(f"[SYNC] PUT response: {resp.status_code}")
-            else:
-                post_url = f"https://sheets.googleapis.com/v4/spreadsheets/{GOOGLE_SHEET_ID}/values/{range_name}:append?valueInputOption=USER_ENTERED&key={GOOGLE_API_KEY}"
-                resp = requests.post(post_url, json={"values": [[image_name, 0, 1]]})
-                print(f"[SYNC] POST response: {resp.status_code}")
-        
-        print("[SYNC] Completado exitosamente")
-        return None
-    except Exception as e:
-        print(f"[SYNC] EXCEPTION: {str(e)}")
-        return str(e)
+    save_likes_cache()
+    return None
 
 def ensure_cache_dir():
     os.makedirs(CACHE_DIR, exist_ok=True)
@@ -698,6 +644,27 @@ class MainWindow(QMainWindow):
         email_btn.clicked.connect(lambda: self.copy_to_clipboard("agdala.sv@gmail.com", email_btn))
         layout.addWidget(email_btn)
         
+        layout.addSpacing(20)
+        
+        stats_btn = QPushButton("📊 Ver Estadísticas")
+        stats_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+        """)
+        stats_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        stats_btn.clicked.connect(lambda: self.show_stats(dialog))
+        layout.addWidget(stats_btn)
+        
         layout.addStretch()
         
         close_btn = QPushButton("Cerrar")
@@ -729,6 +696,92 @@ class MainWindow(QMainWindow):
         original_text = button.text()
         button.setText("¡Copiado!")
         QTimer.singleShot(1500, lambda: button.setText(original_text))
+
+    def show_stats(self, parent_dialog):
+        dialog = QDialog(parent_dialog)
+        dialog.setWindowTitle("Estadísticas de Votación")
+        dialog.setFixedSize(500, 400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        title = QLabel("📊 Estadísticas de Likes/Dislikes")
+        title.setStyleSheet("font-size: 18px; font-weight: bold; color: #e94560;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        
+        layout.addSpacing(10)
+        
+        if not likes_cache:
+            no_data = QLabel("No hay votos todavía")
+            no_data.setStyleSheet("color: #a0a0a0; font-size: 14px;")
+            no_data.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(no_data)
+        else:
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            
+            scroll_content = QWidget()
+            scroll_layout = QVBoxLayout(scroll_content)
+            
+            total_likes = 0
+            total_dislikes = 0
+            
+            for image_name, stats in sorted(likes_cache.items(), key=lambda x: x[1].get('likes', 0) + x[1].get('dislikes', 0), reverse=True):
+                likes = stats.get('likes', 0)
+                dislikes = stats.get('dislikes', 0)
+                total_likes += likes
+                total_dislikes += dislikes
+                
+                card = QWidget()
+                card.setStyleSheet("background-color: #1f4068; border-radius: 10px; padding: 10px; margin: 5px 0;")
+                card_layout = QHBoxLayout(card)
+                
+                name_label = QLabel(image_name[:30] + "..." if len(image_name) > 30 else image_name)
+                name_label.setStyleSheet("color: white; font-weight: bold;")
+                name_label.setMaximumWidth(200)
+                card_layout.addWidget(name_label)
+                
+                likes_label = QLabel(f"❤️ {likes}")
+                likes_label.setStyleSheet("color: #2ecc71; font-weight: bold;")
+                card_layout.addWidget(likes_label)
+                
+                dislikes_label = QLabel(f"❌ {dislikes}")
+                dislikes_label.setStyleSheet("color: #e74c3c; font-weight: bold;")
+                card_layout.addWidget(dislikes_label)
+                
+                scroll_layout.addWidget(card)
+            
+            scroll.setWidget(scroll_content)
+            layout.addWidget(scroll)
+            
+            totals = QLabel(f"Total: ❤️ {total_likes} | ❌ {total_dislikes}")
+            totals.setStyleSheet("font-weight: bold; color: #3498db; padding: 10px;")
+            totals.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(totals)
+        
+        close_btn = QPushButton("Cerrar")
+        close_btn.clicked.connect(dialog.close)
+        close_btn.setFixedWidth(100)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e94560;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #ff6b6b;
+            }
+        """)
+        layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        dialog.setStyleSheet("""
+            QDialog { background-color: #1a1a2e; }
+            QScrollArea { background-color: transparent; border: none; }
+        """)
+        
+        dialog.exec()
 
     def load_stylesheet(self):
         """Loads the QSS stylesheet."""
