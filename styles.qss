@@ -1,0 +1,206 @@
+/* Qt Style Sheet for Linux Wallpaper App - Enhanced Visual Effects */
+
+QMainWindow {
+    background-color: #1a1a2e;
+    color: #eaeaea;
+    font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt;
+}
+
+QWidget {
+    background-color: transparent;
+    color: #eaeaea;
+}
+
+#sidebarWidget {
+    background-color: #16213e;
+    border-radius: 20px;
+    margin-right: 8px;
+    border: 1px solid #0f3460;
+}
+
+#sidebarHeader {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #e94560;
+    padding: 15px 10px 10px 15px;
+}
+
+#categoryList {
+    border: none;
+    background: transparent;
+    padding: 5px;
+}
+
+#categoryList::item {
+    color: #a0a0a0;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin: 3px;
+}
+
+#categoryList::item:hover {
+    background-color: #1f4068;
+    color: #e94560;
+    border-left: 3px solid #e94560;
+}
+
+#categoryList::item:selected {
+    background-color: #e94560;
+    color: white;
+}
+
+#contentWidget {
+    background-color: #16213e;
+    border-radius: 20px;
+    border: 1px solid #0f3460;
+}
+
+#contentHeader {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #e94560;
+    padding: 15px;
+    border-bottom: 1px solid #0f3460;
+}
+
+#wallpaperScrollArea {
+    border: none;
+    background: transparent;
+}
+
+QScrollBar:vertical {
+    background: #0f3460;
+    width: 12px;
+    border-radius: 6px;
+    margin: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: #e94560;
+    border-radius: 6px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #ff6b6b;
+}
+
+#wallpaperCard {
+    background-color: #1f4068;
+    border-radius: 16px;
+    border: 2px solid #0f3460;
+}
+
+#wallpaperCard:hover {
+    border-color: #e94560;
+}
+
+#actionButton {
+    background-color: #0f3460;
+    color: #eaeaea;
+    border: 1px solid #e94560;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 9pt;
+    min-width: 100px;
+}
+
+#actionButton:hover {
+    background-color: #e94560;
+}
+
+#actionButton:pressed {
+    background-color: #c23a51;
+}
+
+#likeButton {
+    background-color: transparent;
+    color: #a0a0a0;
+    border: 2px solid #a0a0a0;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 9pt;
+    min-width: 80px;
+}
+
+#likeButton:hover {
+    border-color: #e94560;
+    color: #e94560;
+}
+
+#likeButton[liked="true"] {
+    background-color: #e94560;
+    color: white;
+    border-color: #e94560;
+}
+
+#heartLabel {
+    color: #e94560;
+    font-size: 20pt;
+}
+
+#dislikeButton {
+    background-color: transparent;
+    color: #a0a0a0;
+    border: 2px solid #a0a0a0;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 9pt;
+    min-width: 80px;
+}
+
+#dislikeButton:hover {
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+#dislikeButton[disliked="true"] {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+QPushButton {
+    background-color: #0f3460;
+    color: #eaeaea;
+    border: 1px solid #e94560;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #e94560;
+}
+
+QPushButton:pressed {
+    background-color: #c23a51;
+}
+
+QScrollArea {
+    background: transparent;
+}
+
+#heartLabel {
+    color: #e94560;
+    font-size: 16pt;
+}
+
+QLabel {
+    background: transparent;
+}
+
+#imageNameLabel {
+    color: #eaeaea;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+#statsLabel {
+    color: #a0a0a0;
+    font-size: 9pt;
+}

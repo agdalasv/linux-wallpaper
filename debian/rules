@@ -1,0 +1,8 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with python3
+
+override_dh_install:
+	dh_install
+	install -Dm755 linux-wallpaper-app.sh debian/linux-wallpaper-app/usr/bin/linux-wallpaper-app

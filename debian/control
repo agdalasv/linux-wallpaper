@@ -1,0 +1,15 @@
+Source: linux-wallpaper-app
+Section: graphics
+Priority: optional
+Maintainer: Agdala <agdala@example.com>
+Build-Depends: debhelper-compat (= 13)
+Depends: python3, python3-pyqt6, python3-requests, python3-pillow
+Standards-Version: 4.6.0
+Homepage: https://github.com/agdalasv/linux_wallpaper_app
+
+Package: linux-wallpaper-app
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}
+Description: Explora y descarga wallpapers para Linux
+ A PyQt6 application to browse and download wallpapers from GitHub.
+ Supports multiple Linux desktop environments.

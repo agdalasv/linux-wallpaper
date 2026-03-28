@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Linux Wallpaper App
+Comment=Explora y descarga wallpapers para Linux
+Exec=linux-wallpaper-app
+Icon=linux-wallpaper-app
+Terminal=false
+Type=Application
+Categories=Utility;Graphics;
+StartupNotify=true

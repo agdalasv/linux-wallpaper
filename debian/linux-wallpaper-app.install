@@ -1,0 +1,5 @@
+main.py usr/share/linux-wallpaper-app/
+styles.qss usr/share/linux-wallpaper-app/
+logo.png usr/share/linux-wallpaper-app/
+linux-wallpaper-app.desktop usr/share/applications/
+linux-wallpaper-app.png usr/share/pixmaps/
